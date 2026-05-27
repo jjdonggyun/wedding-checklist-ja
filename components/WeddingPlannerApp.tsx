@@ -53,8 +53,9 @@ export function WeddingPlannerApp() {
     });
   };
 
-  const saveChecklistItem = (item: ChecklistItem) => {
+  const saveChecklistItem = (item: ChecklistItem, statePatch?: Partial<ChecklistItemState>) => {
     const exists = data.template.checklist.some((current) => current.id === item.id);
+    const currentState = data.userState.checklist[item.id] || { completed: false, memo: "", links: [] };
     saveData({
       ...data,
       template: {
@@ -62,6 +63,13 @@ export function WeddingPlannerApp() {
         checklist: exists
           ? data.template.checklist.map((current) => (current.id === item.id ? item : current))
           : [item, ...data.template.checklist],
+      },
+      userState: {
+        ...data.userState,
+        checklist: {
+          ...data.userState.checklist,
+          [item.id]: { ...currentState, ...statePatch },
+        },
       },
     });
   };
@@ -99,8 +107,12 @@ export function WeddingPlannerApp() {
     });
   };
 
-  const saveBudgetItem = (item: BudgetItem) => {
+  const saveBudgetItem = (
+    item: BudgetItem,
+    statePatch?: Partial<{ paid: boolean; selected: boolean; actualAmount?: number }>,
+  ) => {
     const exists = data.template.budget.some((current) => current.id === item.id);
+    const currentState = data.userState.budget[item.id] || { paid: false, selected: false };
     saveData({
       ...data,
       template: {
@@ -108,6 +120,13 @@ export function WeddingPlannerApp() {
         budget: exists
           ? data.template.budget.map((current) => (current.id === item.id ? item : current))
           : [item, ...data.template.budget],
+      },
+      userState: {
+        ...data.userState,
+        budget: {
+          ...data.userState.budget,
+          [item.id]: { ...currentState, ...statePatch },
+        },
       },
     });
   };

@@ -6,7 +6,7 @@ import type { ChecklistCategoryKey, ChecklistItem, ChecklistItemState, WeddingDa
 type Props = {
   data: WeddingData;
   onDeleteItem: (id: string) => void;
-  onSaveItem: (item: ChecklistItem) => void;
+  onSaveItem: (item: ChecklistItem, statePatch?: Partial<ChecklistItemState>) => void;
   onUpdateItem: (id: string, patch: Partial<ChecklistItemState>) => void;
 };
 
@@ -42,6 +42,7 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
   );
   const [form, setForm] = useState<ChecklistForm>(() => emptyForm(activeCategory));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
   const [translationError, setTranslationError] = useState("");
@@ -55,12 +56,14 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
   const startAdd = () => {
     setEditingId(null);
     setDeleteTargetId(null);
+    setIsAddOpen(true);
     setForm(emptyForm(activeCategory));
   };
 
   const startEdit = (item: ChecklistItem) => {
     const state = data.userState.checklist[item.id];
     setEditingId(item.id);
+    setIsAddOpen(false);
     setDeleteTargetId(null);
     setForm({
       id: item.id,
@@ -126,8 +129,7 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
       memo: form.memo,
       recommendedTiming: previous?.recommendedTiming || { ko: "직접 추가한 항목", ja: "手動追加項目" },
       title: { ko: trimmedKo, ja: trimmedJa },
-    });
-    onUpdateItem(id, {
+    }, {
       completed: data.userState.checklist[id]?.completed || false,
       deadline: form.dueDate || undefined,
       important: form.important,
@@ -136,6 +138,7 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
     });
     setActiveCategory(form.categoryId);
     setEditingId(null);
+    setIsAddOpen(false);
     setForm(emptyForm(form.categoryId));
     setTranslating(null);
   };
@@ -172,21 +175,42 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
       </aside>
 
       <div className="min-w-0 space-y-4">
-        <ChecklistEditor
-          data={data}
-          editingId={editingId}
-          form={form}
-          onCancel={() => {
-            setEditingId(null);
-            setForm(emptyForm(activeCategory));
-          }}
-          onChange={setForm}
-          onSave={saveForm}
-          onStartAdd={startAdd}
-          onTranslate={translateTitle}
-          translating={translating}
-          translationError={translationError}
-        />
+        <article className="min-w-0 rounded-lg border border-sky-100 bg-white p-4 shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              if (isAddOpen) {
+                setIsAddOpen(false);
+                setForm(emptyForm(activeCategory));
+              } else {
+                startAdd();
+              }
+            }}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <span className="text-lg font-semibold">{t(language, "itemAdd")}</span>
+            <span className="rounded-md bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-700">
+              {isAddOpen ? t(language, "cancel") : t(language, "add")}
+            </span>
+          </button>
+          {isAddOpen && (
+            <div className="mt-4 border-t border-sky-100 pt-4">
+              <ChecklistEditor
+                data={data}
+                form={form}
+                onCancel={() => {
+                  setIsAddOpen(false);
+                  setForm(emptyForm(activeCategory));
+                }}
+                onChange={setForm}
+                onSave={saveForm}
+                onTranslate={translateTitle}
+                translating={translating}
+                translationError={translationError}
+              />
+            </div>
+          )}
+        </article>
 
         <div className="space-y-3">
           {items.length ? (
@@ -275,6 +299,23 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
                           </div>
                         </div>
                       )}
+                      {editingId === item.id && (
+                        <div className="mt-4 border-t border-sky-100 pt-4">
+                          <ChecklistEditor
+                            data={data}
+                            form={form}
+                            onCancel={() => {
+                              setEditingId(null);
+                              setForm(emptyForm(activeCategory));
+                            }}
+                            onChange={setForm}
+                            onSave={saveForm}
+                            onTranslate={translateTitle}
+                            translating={translating}
+                            translationError={translationError}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -293,41 +334,27 @@ export function ChecklistView({ data, onDeleteItem, onSaveItem, onUpdateItem }: 
 
 function ChecklistEditor({
   data,
-  editingId,
   form,
   onCancel,
   onChange,
   onSave,
-  onStartAdd,
   onTranslate,
   translating,
   translationError,
 }: {
   data: WeddingData;
-  editingId: string | null;
   form: ChecklistForm;
   onCancel: () => void;
   onChange: (form: ChecklistForm) => void;
   onSave: () => void | Promise<void>;
-  onStartAdd: () => void;
   onTranslate: (target: "ko" | "ja") => void | Promise<void>;
   translating: "ko" | "ja" | "save" | null;
   translationError: string;
 }) {
   const language = data.language;
   return (
-    <article className="min-w-0 rounded-lg border border-sky-100 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">{editingId ? t(language, "edit") : t(language, "itemAdd")}</h2>
-        <button
-          type="button"
-          onClick={onStartAdd}
-          className="rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white"
-        >
-          {t(language, "itemAdd")}
-        </button>
-      </div>
-      <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
+    <div className="min-w-0">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
         <Field label={t(language, "titleKo")}>
           <div className="grid gap-2">
             <input
@@ -409,7 +436,7 @@ function ChecklistEditor({
           {t(language, "cancel")}
         </button>
       </div>
-    </article>
+    </div>
   );
 }
 

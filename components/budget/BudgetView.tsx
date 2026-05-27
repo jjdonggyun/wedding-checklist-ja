@@ -6,7 +6,10 @@ import type { BudgetCategory, BudgetItem, WeddingData } from "@/types/wedding";
 type Props = {
   data: WeddingData;
   onDeleteBudgetItem: (id: string) => void;
-  onSaveBudgetItem: (item: BudgetItem) => void;
+  onSaveBudgetItem: (
+    item: BudgetItem,
+    statePatch?: Partial<{ paid: boolean; selected: boolean; actualAmount?: number }>,
+  ) => void;
   onUpdateBudgetItem: (
     id: string,
     patch: Partial<{ paid: boolean; selected: boolean; actualAmount?: number }>,
@@ -155,8 +158,7 @@ export function BudgetView({ data, onDeleteBudgetItem, onSaveBudgetItem, onUpdat
       paid: form.paid,
       paymentDueDate: form.paymentDueDate || undefined,
       title: { ko: titleKo, ja: titleJa },
-    });
-    onUpdateBudgetItem(id, { actualAmount: amount, paid: form.paid, selected: true });
+    }, { actualAmount: amount, paid: form.paid, selected: true });
     setEditingId(null);
     setForm(emptyForm());
     setTranslating(null);
