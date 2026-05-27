@@ -5,19 +5,7 @@ export type LocalizedText = {
   ja: string;
 };
 
-export type ChecklistCategoryKey =
-  | "confirmed"
-  | "photo"
-  | "ceremony"
-  | "sdm"
-  | "attire"
-  | "honeymoon"
-  | "parents"
-  | "invitation"
-  | "home"
-  | "payment"
-  | "caution"
-  | "planner";
+export type ChecklistCategoryKey = string;
 
 export type BudgetCategory = "package" | "required" | "optional" | "discount";
 
@@ -44,11 +32,15 @@ export type ChecklistItem = {
   id: string;
   categoryId: ChecklistCategoryKey;
   title: LocalizedText;
+  description?: LocalizedText;
   recommendedTiming: LocalizedText;
   deadline?: string;
+  dueDate?: string;
+  completed?: boolean;
   important?: boolean;
   undecided?: boolean;
   caution?: boolean;
+  memo?: string;
   vendor?: LocalizedText;
   links?: string[];
   defaultMemo?: LocalizedText;
@@ -70,8 +62,10 @@ export type BudgetItem = {
   amount?: number;
   amountLabel?: LocalizedText;
   dueDate?: string;
+  paymentDueDate?: string;
   paid?: boolean;
   required?: boolean;
+  memo?: string;
   note?: LocalizedText;
 };
 

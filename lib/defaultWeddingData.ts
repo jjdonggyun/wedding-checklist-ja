@@ -226,9 +226,22 @@ export const defaultWeddingData: WeddingData = {
   },
   language: "ko",
   template: {
-    version: 1,
-    categories,
-    checklist,
+    version: 2,
+    categories: categories.filter(
+      (category) => !["honeymoon", "home", "caution"].includes(category.id),
+    ).map((category) =>
+      category.id === "payment"
+        ? { ...category, title: lt("비용/결제", "費用・支払い") }
+        : category.id === "attire"
+          ? { ...category, title: lt("예복/예물", "礼服・指輪") }
+          : category,
+    ),
+    checklist: checklist.filter(
+      (item) =>
+        !["honeymoon", "home", "caution"].includes(item.categoryId) &&
+        !item.id.startsWith("points-") &&
+        item.id !== "payment-points",
+    ),
     budget,
     schedule,
   },

@@ -18,11 +18,13 @@ function cloneDefault(): WeddingData {
 
 function mergeWithDefault(value: Partial<WeddingData>): WeddingData {
   const base = cloneDefault();
+  const template =
+    value.template?.version === base.template.version ? value.template : base.template;
   return {
     ...base,
     ...value,
     profile: { ...base.profile, ...value.profile },
-    template: value.template || base.template,
+    template,
     userState: {
       checklist: { ...base.userState.checklist, ...value.userState?.checklist },
       budget: { ...base.userState.budget, ...value.userState?.budget },

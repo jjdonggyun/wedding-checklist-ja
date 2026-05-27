@@ -1,4 +1,4 @@
-import { t, text } from "@/lib/i18n";
+﻿import { t, text } from "@/lib/i18n";
 import type { WeddingData } from "@/types/wedding";
 
 export function ScheduleView({ data }: { data: WeddingData }) {
@@ -15,7 +15,7 @@ export function ScheduleView({ data }: { data: WeddingData }) {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
-      <article className="rounded-lg border border-rose-100 bg-white p-5 shadow-sm">
+      <article className="rounded-lg border border-sky-100 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">{t(language, "timeline")}</h2>
         <div className="mt-4 space-y-3">
           {items.map((item) => (
@@ -35,12 +35,12 @@ export function ScheduleView({ data }: { data: WeddingData }) {
           ))}
         </div>
       </article>
-      <article className="rounded-lg border border-rose-100 bg-white p-5 shadow-sm">
+      <article className="rounded-lg border border-sky-100 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">{t(language, "monthView")}</h2>
         <div className="mt-4 space-y-4">
           {Object.entries(monthly).map(([month, monthItems]) => (
             <div key={month}>
-              <h3 className="text-sm font-semibold text-rose-600">{month}</h3>
+              <h3 className="text-sm font-semibold text-sky-600">{month}</h3>
               <ul className="mt-2 space-y-2">
                 {monthItems.map((item) => (
                   <li key={item.id} className="rounded-md border border-stone-100 px-3 py-2 text-sm">
@@ -55,3 +55,4 @@ export function ScheduleView({ data }: { data: WeddingData }) {
     </section>
   );
 }
+

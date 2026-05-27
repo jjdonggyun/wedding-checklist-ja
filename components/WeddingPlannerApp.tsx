@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { BudgetView } from "@/components/budget/BudgetView";
 import { ChecklistView } from "@/components/checklist/ChecklistView";
 import { Dashboard } from "@/components/dashboard/Dashboard";
@@ -11,6 +11,7 @@ import { t } from "@/lib/i18n";
 import { localWeddingRepository } from "@/lib/storage";
 import type {
   BudgetItem,
+  ChecklistItem,
   ChecklistItemState,
   CoupleProfile,
   Language,
@@ -52,6 +53,35 @@ export function WeddingPlannerApp() {
     });
   };
 
+  const saveChecklistItem = (item: ChecklistItem) => {
+    const exists = data.template.checklist.some((current) => current.id === item.id);
+    saveData({
+      ...data,
+      template: {
+        ...data.template,
+        checklist: exists
+          ? data.template.checklist.map((current) => (current.id === item.id ? item : current))
+          : [item, ...data.template.checklist],
+      },
+    });
+  };
+
+  const deleteChecklistItem = (id: string) => {
+    const { [id]: _removed, ...nextChecklistState } = data.userState.checklist;
+    void _removed;
+    saveData({
+      ...data,
+      template: {
+        ...data.template,
+        checklist: data.template.checklist.filter((item) => item.id !== id),
+      },
+      userState: {
+        ...data.userState,
+        checklist: nextChecklistState,
+      },
+    });
+  };
+
   const updateBudgetItem = (
     id: string,
     patch: Partial<{ paid: boolean; selected: boolean; actualAmount?: number }>,
@@ -69,6 +99,35 @@ export function WeddingPlannerApp() {
     });
   };
 
+  const saveBudgetItem = (item: BudgetItem) => {
+    const exists = data.template.budget.some((current) => current.id === item.id);
+    saveData({
+      ...data,
+      template: {
+        ...data.template,
+        budget: exists
+          ? data.template.budget.map((current) => (current.id === item.id ? item : current))
+          : [item, ...data.template.budget],
+      },
+    });
+  };
+
+  const deleteBudgetItem = (id: string) => {
+    const { [id]: _removed, ...nextBudgetState } = data.userState.budget;
+    void _removed;
+    saveData({
+      ...data,
+      template: {
+        ...data.template,
+        budget: data.template.budget.filter((item) => item.id !== id),
+      },
+      userState: {
+        ...data.userState,
+        budget: nextBudgetState,
+      },
+    });
+  };
+
   const updateProfile = (profile: CoupleProfile) => {
     saveData({ ...data, profile });
   };
@@ -79,39 +138,30 @@ export function WeddingPlannerApp() {
     setData(localWeddingRepository.reloadTemplate(data, defaultWeddingData.template));
   };
 
-  const selectedPackage = useMemo(
-    () =>
-      data.template.budget.find(
-        (budget: BudgetItem) =>
-          budget.category === "package" && data.userState.budget[budget.id]?.selected,
-      ),
-    [data.template.budget, data.userState.budget],
-  );
-
   const language = data.language;
 
   return (
-    <main className="min-h-screen bg-[#fffaf7] text-stone-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="sticky top-0 z-20 -mx-4 border-b border-rose-100 bg-[#fffaf7]/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <main className="min-h-screen bg-slate-50 text-slate-950">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 overflow-hidden px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <header className="sticky top-0 z-20 -mx-4 border-b border-sky-100 bg-[#f8fafc]/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-500">
                 {t(language, "appName")}
               </p>
-              <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl">
+              <h1 className="break-keep text-xl font-semibold text-slate-950 sm:text-3xl">
                 {t(language, "groom")} · {t(language, "bride")} Wedding Planner
               </h1>
             </div>
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
-              <div className="flex rounded-full border border-rose-200 bg-white p-1 shadow-sm">
+            <div className="flex items-center justify-start gap-2 sm:justify-end">
+              <div className="flex rounded-full border border-sky-200 bg-white p-1 shadow-sm">
                 {(["ko", "ja"] as const).map((lang) => (
                   <button
                     key={lang}
                     type="button"
                     onClick={() => setLanguage(lang)}
                     className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
-                      language === lang ? "bg-rose-500 text-white" : "text-stone-600 hover:bg-rose-50"
+                      language === lang ? "bg-sky-500 text-white" : "text-stone-600 hover:bg-sky-50"
                     }`}
                   >
                     {lang.toUpperCase()}
@@ -120,7 +170,7 @@ export function WeddingPlannerApp() {
               </div>
             </div>
           </div>
-          <nav className="mx-auto mt-3 flex max-w-7xl gap-2 overflow-x-auto pb-1">
+          <nav className="mx-auto mt-3 flex max-w-7xl gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
             {views.map((view) => (
               <button
                 key={view}
@@ -128,8 +178,8 @@ export function WeddingPlannerApp() {
                 onClick={() => setActiveView(view)}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
                   activeView === view
-                    ? "bg-stone-950 text-white shadow-sm"
-                    : "bg-white text-stone-600 ring-1 ring-rose-100 hover:bg-rose-50"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-white text-slate-600 ring-1 ring-sky-100 hover:bg-sky-50"
                 }`}
               >
                 {t(language, view)}
@@ -139,14 +189,24 @@ export function WeddingPlannerApp() {
         </header>
 
         {activeView === "dashboard" && (
-          <Dashboard data={data} selectedPackage={selectedPackage} onOpenView={setActiveView} />
+          <Dashboard data={data} onOpenView={setActiveView} />
         )}
         {activeView === "checklist" && (
-          <ChecklistView data={data} onUpdateItem={updateChecklistItem} />
+          <ChecklistView
+            data={data}
+            onDeleteItem={deleteChecklistItem}
+            onSaveItem={saveChecklistItem}
+            onUpdateItem={updateChecklistItem}
+          />
         )}
         {activeView === "schedule" && <ScheduleView data={data} />}
         {activeView === "budget" && (
-          <BudgetView data={data} onUpdateBudgetItem={updateBudgetItem} />
+          <BudgetView
+            data={data}
+            onDeleteBudgetItem={deleteBudgetItem}
+            onSaveBudgetItem={saveBudgetItem}
+            onUpdateBudgetItem={updateBudgetItem}
+          />
         )}
         {activeView === "settings" && (
           <SettingsView
@@ -161,3 +221,4 @@ export function WeddingPlannerApp() {
     </main>
   );
 }
+
