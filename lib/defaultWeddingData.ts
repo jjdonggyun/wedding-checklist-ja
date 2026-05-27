@@ -23,6 +23,7 @@ const categories: ChecklistCategory[] = [
   ["payment", "결제/포인트/캐시백", "支払い・ポイント・還元"],
   ["caution", "위약금/주의사항", "キャンセル料・注意事項"],
   ["planner", "플래너 문의 필요 항목", "プランナー確認事項"],
+  ["other", "기타", "その他"],
 ].map(([id, ko, ja]) => ({
   id: id as ChecklistCategoryKey,
   title: lt(ko, ja),
@@ -226,7 +227,7 @@ export const defaultWeddingData: WeddingData = {
   },
   language: "ko",
   template: {
-    version: 2,
+    version: 3,
     categories: categories.filter(
       (category) => !["honeymoon", "home", "caution"].includes(category.id),
     ).map((category) =>
